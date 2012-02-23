@@ -1,0 +1,9 @@
+param num_matrices := 3; # Number of matrices in the data file to be read
+param num_rows := 3;     # Number of rows
+param num_cols := 4;     # Number of columns 
+
+# Read from mat_raw.txt to fill matrix_value. Note that the order 
+# of the index variables matter; here one matrix is filled at a time, 
+# where for each row, the corresponding column values are assigned.
+read {m in MATS, i in ROWS, j in COLUMNS} matrix_value[m,i,j] < mat_raw.txt;
+

@@ -1,0 +1,5 @@
+model mat.mod;
+data mat.dat;
+option solver cplex; # Using full version ampl-cplex
+solve;
+print {i in ROWS}: {j in COLUMNS} MaxValue[i,j] > mat.out;

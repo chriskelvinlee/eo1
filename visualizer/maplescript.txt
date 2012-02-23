@@ -1,0 +1,48 @@
+numrows := 60;
+numcols := 80;
+beamfilename := "beam.out";
+tumorfilename := "tumor_raw.txt";
+criticalfilename := "critical_raw.txt";
+readlib(readdata);
+data := readdata(beamfilename,float,numcols);
+tumordata := readdata(tumorfilename,float,numcols);
+criticaldata := readdata(criticalfilename, float,numcols);
+A:= convert(data, matrix);
+B:= convert(tumordata, matrix);
+Bcomp := convert(tumordata,matrix);
+C := convert(criticaldata, matrix);
+
+maxval := 0;
+for i from 1 to numrows do 
+   for j from 1 to numcols do 
+   if A[i,j] > maxval then 
+    maxval := A[i,j];
+    fi;
+od;
+od;
+for i from 1 to numrows do 
+   for j from 1 to numcols do 
+   A[i,j] := A[i,j] / maxval;
+od;
+od;
+for i from 1 to numrows do 
+   for j from 1 to numcols do 
+   if Bcomp[i,j] > 0 then 
+     Bcomp[i,j] := 0;
+     else Bcomp[i,j] := 1;
+     fi;
+od;
+od;
+
+with(ImageTools):
+img := Create(numrows, numcols, A):
+img_c := Create(numrows, numcols, channels=3):
+imgtumor := Create(numrows, numcols, B);
+imgnontumor := Create(numrows,numcols, Bcomp);
+imgcritical := Create(numrows, numcols, C);
+
+SetLayer(img_c, 0.2*imgnontumor + 0.3*img - 0.05*imgcritical, 3, inplace);
+SetLayer(img_c, 0.5*imgtumor, 1, inplace):
+SetLayer(img_c, img + 0.2*imgtumor, 2, inplace):
+Write("ray_img.jpg",img_c);
+Write("ray_img.tif",img_c,format=TIFF);

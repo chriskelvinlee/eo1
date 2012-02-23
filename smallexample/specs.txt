@@ -1,0 +1,5 @@
+Number of beams: 5
+Vertical pixel resolution: 8
+Horizontal pixel resolution: 8 
+Maximum Dose Allowed Over Critical Area: 2
+Minimum Dose Required Over Tumor Area: 10
