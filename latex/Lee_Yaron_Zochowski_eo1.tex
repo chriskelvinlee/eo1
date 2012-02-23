@@ -1,0 +1,292 @@
+% am121 LaTeX template, for assignment and extreme optimization writeups
+% created by Chris Coey for am121 Spring 2012
+
+\documentclass[12pt]{article}
+% packages
+\usepackage{amssymb,amsmath,amsthm} 
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx,ctable,booktabs}
+% begin paragraphs on empty line rather than indent
+\usepackage[parfill]{parskip}
+% eps to pdf, declare graphics
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+% enable highlighting text: use \hl{your text here}
+\usepackage{soul}
+
+% adjust section and subsection labelling 
+\def\thesection{\arabic{section}}
+\def\thesubsection{\arabic{section}.\arabic{subsection}}
+\makeatletter
+% section as task
+\newenvironment{task}{\@startsection
+       {section}{1}
+       {0.4em}{-.5ex plus -1ex minus -.2ex}{.5ex plus .2ex}
+       {\pagebreak[3]\large\bf\noindent{Task}}}
+       {\nopagebreak[3]\vspace{3ex}\begin{center}\rule{1\linewidth}{.3pt}\end{center}}
+% subsection as subtask
+\newenvironment{subtask}{\@startsection
+       {subsection}{2}
+       {0.3em}{0ex plus -1ex minus -.2ex}{.5ex plus .2ex}
+       {\pagebreak[3]\large}}
+       {\nopagebreak[3]\vspace{3ex}\begin{center}\rule{0.5\linewidth}{.3pt}\end{center}}
+\makeatother
+
+% headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\chead{} 
+\rhead{\thepage} 
+% footer
+\lfoot{\small\scshape AM121} 
+\cfoot{} 
+%%%% insert your name here %%%%
+\rfoot{\footnotesize Remission Accomplished} 
+\renewcommand{\headrulewidth}{.3pt} 
+\renewcommand{\footrulewidth}{.3pt}
+\setlength\voffset{-0.25in}
+\setlength\textheight{648pt}
+
+\begin{document}
+%%%% change homework number here %%%%
+\title{AM121: Extreme Optimization 1}
+%%%% insert your name and TF's name here %%%%
+\author{Remission Accomplished\\ Christopher Lee, Barr Yaron, Michael Zochowski \\
+\textit{TF: Xiao Cong}}
+\date{\today}
+\maketitle
+\thispagestyle{empty}
+\bigskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% task 1.1
+\begin{task}{}
+\begin{subtask}{}
+
+Sets\\ 
+\begin{tabular}{ll}
+	$R_v$ & vertical resolution \\
+	$R_h$ & horizontal resolution \\
+	$B$ & set of beamlets\\ 
+\end{tabular}
+	
+Parameters\\ 
+\begin{tabular}{lll}
+	$\text{max}_{c}$ &  & maximum radiation allowed for each critical area cell \\
+	$\text{min}_{t}$ & & minimum radiation required for each tumor cell \\
+	$\text{max}_q$ & & maximum intensity of any beam \\
+	$b^{(k)}_{i,j}$ & $k \in B, i \in R_h, j \in R_v$ & entry $i,j$ of beamlet matrix $B_k$\\
+	$t_{i,j}$ & $i \in R_h, j \in R_v$ & entry $i,j$ of tumor matrix $T$\\
+	$c_{i,j}$ & $i \in R_h, j \in R_v$ & entry $i,j$ of critical area matrix $C$
+\end{tabular}
+	
+Variables\\ 
+\begin{tabular}{lll}
+	$q_{k}$ & $k \in B$ & intensity of beamlet $k$\\
+\end{tabular}
+
+\setcounter{equation}{0} 
+Objective 
+\begin{align}
+	\max \quad
+	& \sum_{i\in R_h} \sum_{j \in R_v}\bigg{(} \bigg{[} \sum_{k \in B} q_k b^{(k)}_{i,j} \bigg{]} (t_{i,j} - c_{i,j}) \bigg{)}
+\end{align}
+\begin{quote}
+
+Here we are maximizing the radiation delivered to tumor cells while minimizing radiation delivered to critical area cells. By summing over the intensities of each beamlet times each beamlet matrix entry for a given cell, we are able to find the total radiation delivered to that cell from all of the beamlets.  We multiply the total radiation in that cell by the same cell entry of the tumor matrix minus entry that cell entry of the critical area matrix.  We sum over all of the cells, which then gives us total radiation delivered to the tumor area minus total radiation delivered to the critical area.  That is precisely what we wish to maximize!
+
+\end{quote}
+
+Constraints 
+\begin{align}
+	\sum_{k \in B} q_k b^{(k)}_{i,j}& \geq t_{i,j}\text{min}_t & \forall i \in R_h, j \in R_v
+\end{align}
+\begin{quote}
+If a tumorous cell, then the total radiation in that cell (the left hand side) must be greater than or equal to the minimum radiation needed for any tumor cell.  This constraint is shown in the above inequality because if the cell is tumorous in entry $(i, j)$, $t_{i,j} = 1$.  If the cell is not tumorous, then $t_{i,j} = 0$ and the constraint is simply the non-negativity constraint.
+\end{quote}
+\begin{align}
+	c_{i,j} \sum_{k \in B} q_k b^{(k)}_{i,j}& \leq \text{max}_c & \forall i \in R_h, j \in R_v
+\end{align}
+\begin{quote}
+If a critical area cell, then the total radiation in that cell must be less than the maximum allowable. 
+\end{quote}
+\begin{align}
+	q_{k} & \leq \text{max}_q & \forall k \in B
+\end{align}
+\begin{quote}Set an upper limit on intensity for any beam\end{quote}
+\begin{align}
+	q_{k} & \geq 0 & \forall k \in B
+\end{align}
+\begin{quote}Non-negativity constraint\end{quote}
+\end{subtask}
+
+% task 1.2
+\begin{subtask}{}
+
+Make a two step linear program:
+\begin{enumerate}
+\item Step 1: \\
+We modify the objective function and parameters so that the limits can be adjusted to ensure feasibility:
+
+Variables (additional)\\ 
+\begin{tabular}{lll}
+	$\text{adj}_{c}$ & & adjustment radiation for each critical area cell \\
+	$\text{adj}_{t}$ & & adjustment radiation allowed for each tumor cell \\
+\end{tabular}
+
+Constraints (updated)
+\begin{align}
+	c_{i,j} \sum_{k \in B} q_k b^{(k)}_{i,j} & \leq \text{max}_c + \text{adj}_c & \forall i \in R_h, j \in R_v\\
+	t_{i,j} \sum_{k \in B} q_k b^{(k)}_{i,j} & \geq \text{min}_t - \text{adj}_t & \forall i \in R_h, j \in R_v
+\end{align}
+\begin{quote}Allow flexibility in the constraints to ensure feasibility of the program.\end{quote}
+\begin{align}
+	\text{adj}_{c}, \text{adj}_{t} & \geq 0
+\end{align}
+
+Objective 1
+\begin{align}
+	\min \quad
+	& \text{adj}_c  + \text{adj}_t
+\end{align}
+\begin{quote}Minimize the adjustments required to the constraints while remaining in the feasible region.\end{quote}
+
+\item Step 2: \\
+Change $\text{adj}_c$ and $\text{adj}_t$ from variables to parameters, using the values found in step 1 for the constraints.  Keep the program otherwise the same and substitute in the original objective:\\
+
+Objective 2
+\begin{align}
+	\max \quad
+	& \sum_{i\in R_h} \sum_{j \in R_v}\bigg{(} \bigg{[} \sum_{k \in B} q_k b^{(k)}_{i,j} \bigg{]} (t_{i,j} - c_{i,j}) \bigg{)}
+\end{align}
+
+This ensures that the minimal adjustment is used to make a feasible region, while continuing the primary objective of maximizing radiation in the tumor and minimizing radiation in critical areas.
+\end{enumerate}
+
+\end{subtask}
+
+
+% task 1.3
+\begin{subtask}{}
+Follow the same two step protocol outlined in task 2, with the following updates to the linear program:
+
+To account for the inaccuracies in defining critical regions, we implement a "soft" border defined by a score assigned to each cell in the region.  This score is the sum of the values of the critical area matrix (1 for measured critical area, 0 for non-critical areas) in the $3 \times 3$ region around each cell.  We then weight the penalty for radiation in a critical area proportionally to this score.
+
+Variables (additional)\\ 
+\begin{tabular}{lll}
+	$s_{i,j}$ & $i \in R_h, j \in R_v$ &the score of cell $i,j$ based on likelihood of being in critical area\\
+\end{tabular}
+
+Objective for step 2 (updated)
+\begin{align}
+	\max \quad
+	& \sum_{i\in R_h} \sum_{j \in R_v}\bigg{(} \bigg{[} \sum_{k \in B} q_k b^{(k)}_{i,j} \bigg{]} (t_{i,j} - \frac{1}{9}s_{i,j}) \bigg{)}
+\end{align}
+\begin{quote}Maximize radiation in tumor and minimize radiation in the softly defined critical area. Multiply the score by $\frac{1}{9}$ to ensure that critical areas are not weighted more than tumor areas.\end{quote}
+
+Constraints (additional)
+\begin{align}
+	s_{i,j} & = \sum_{k=i-1}^{i+1} \sum_{l=j-1}^{j+1} c_{k,l} & \forall i \in R_h, j \in R_v \\
+	s_{i,j} & \geq 0 & \forall i \in R_h, j \in R_v
+\end{align}
+
+To deal with problems from arising from calculating the score of cells on the edges of the matrix (where $i-1$ or $j-1$ make no sense), add a border of zeros around the matrix and deal only with cells in the interior of the resulting matrix in objectives and constraints.
+
+\end{subtask}
+
+% task 1.4
+\begin{subtask}{}
+Improvements:
+\begin{enumerate}
+\item Minimize the maximum radiation allowed for any one cell. 
+\item Create different degrees of critical areas. 
+\item Minimize total radiation in system.
+\item Maximize intensity of any one beam. \textbf{ we already do that now in the original problem???}
+\item Multiple treatments, having a penalty to repeating the path.
+\item Add a soft border allowance for tumor areas.
+\end{enumerate}
+
+\bigskip
+
+Explanation:
+\begin{enumerate}
+\item We want to better distribute the radiation over all the cells in the same manner found in the sprinkler problem. We do this by minimizing the maximum amount of radiation allowed in any particular cell. 
+\item We want to create a general method to factor in topological gradient of radiation threshold. For example, if the tumor cell is in the stomach, nearby heart critical cells may be more sensitive than nearby lung critical cells.
+\item Radiation is harmful to the body, and we want to minimize total exposure to the body.
+\item Scarring is bad. We want to prevent surface cells from burning. To do this we penalize for beams with the same origin.
+\item Radiation therapy may take multiple treatments. We want to find a unique path for every treatment to prevent free radicals and other cancerous cells from too much radiation exposure.
+\item We accounted for areas in measuring the borders of critical areas in task 1.3. Techniques for measuring tumor areas are similarly imperfect, so we should account for inaccuracies by adding soft borders for tumor areas in the same manner as we did for critical areas.
+\end{enumerate}
+\end{subtask}
+
+
+% task 1.5
+\begin{subtask}{}
+We choose to pursue improvements: 1, 2, and 3
+\\
+
+1.  We now create a new variable $M$, that represents the maximum radiation allowed for any one cell.  
+\\
+Constraints (additional):
+\begin{align}
+    \quad
+    & \sum_{k \in B} q_k b^{(k)}_{i,j} \le M \text{                              }\forall i \in R_h, j \in R_v
+\end{align}
+
+We then update the objective function to minimize this maximum radiation
+
+Objective (updated):
+\begin{align}
+    \min \quad
+    & M
+\end{align}
+
+2.  We now wish to account for a topological gradient of radiation threshold.  Essentially instead of caring whether or not an area is critical, we care about "how critical" it is.  We can do this by adding an additional parameter
+
+Parameters\\ 
+\begin{tabular}{lll}
+	$L_{i,j}$ & $i \in R_h, j \in R_v$ & entry $i,j$ of level of critical area matrix $C$
+\end{tabular}
+
+We now have additional constraints
+\begin{align}
+    \quad
+    & L_{i,j} \le 1 \text{                              }\forall i \in R_h, j \in R_v
+\end{align}
+\begin{align}
+    \quad
+    & L_{i,j} \ge 0 \text{                              }\forall i \in R_h, j \in R_v
+\end{align}
+
+This ensures that the "level" of critical area is measured on some spectrum between 0 and 1.  We also have a new objective function.
+
+Objective 
+\begin{align}
+	\max \quad
+	& \sum_{i\in R_h} \sum_{j \in R_v}\bigg{(} \bigg{[} \sum_{k \in B} q_k b^{(k)}_{i,j} \bigg{]} (t_{i,j} - L_{j,i}c_{i,j}) \bigg{)}
+\end{align}
+
+
+
+
+3.   Minimize total radiation in system. The naive approach is to minimize the radiation $r_{i,j}$ over the entire system. However, this would not be an enhancement over our original LP since we would have to redefine our OF. Instead we take our existing of from Task 1.1, and \emph{subtract} $r_{i,j}$ from the maximize OF: 
+
+Objective (updated):
+\begin{align}
+    \max \quad
+    & \sum_{i\in R_h} \sum_{j \in R_v} \bigg{[} r_{i,j}(t_{i,j} - c_{i,j} -1) \bigg{]}
+\end{align}
+
+Maximizing the negative $r_{i,j}$ has the same effect as minimizing the positive $r_{i,j}$. For the LP to be most optimal, the sum of $r_{i,j}$, or the total radiation, should be as small as possible.
+
+\end{subtask}
+\end{task}
+
+% task 2
+\begin{task}{}
+AMPL
+\end{task}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
